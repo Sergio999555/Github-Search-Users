@@ -1,0 +1,145 @@
+.wrapper {
+	text-align: center;
+	background: black;
+	background-image: url('../img/githublogo.svg');
+	background-position-y: bottom;
+	background-position-x: center;
+	background-repeat: repeat-y;
+}
+
+.title {
+	color: white;
+}
+
+.search {
+	&__container {
+		margin-left: auto;
+		margin-right: auto;
+		height: 42px;
+		width: 400px;
+	}
+
+	&__container:hover {
+		box-shadow: 0 0 20px 0 #f55;
+		transition: 0.3s ease-in-out;
+	}
+
+	&__input {
+		border-radius: 6px;
+		padding: 10px;
+		font-size: 16px;
+		width: 406px;
+		height: 48px;
+		margin-top: -6px;
+		margin-left: -4px;
+	}
+
+	&__listcontainer {
+		margin-top: 50px;
+	}
+
+	&__result {
+		padding-left: 0;
+		text-align: left;
+	}
+
+	&__item {
+		cursor: pointer;
+		list-style: none;
+		width: 250px;
+		background: white;
+		border-radius: 5px;
+		margin-left: auto;
+		margin-right: auto;
+		background: white;
+		
+	}
+
+	&__item--hidden {
+		display: none;
+	}
+
+	&__title {
+		padding: 10px;
+		font-weight: 100;
+		border: 1px solid black;
+    	border-radius: 4px;
+	}
+
+	&__title:hover {
+		box-shadow: 0 0 19px 0 #f55;
+		transition: 0.3s ease-in-out;
+	}
+}
+
+.bookmarks {
+	&__container {
+		position: fixed;
+    	top: 500px;
+	}
+
+	&__result {
+		display: flex;
+		gap: 50px;
+		list-style: none;
+	}
+
+	&__item {
+		background: white;
+		border-radius: 6px;
+		box-shadow: 0 0 19px 0 #f55;
+	}
+
+	&__item--hidden {
+		display: none;
+	}
+
+	&__content {
+		display: block;
+		min-width: 250px;
+	}
+	
+	&__item--avatar {
+		margin-top: 10px;
+		height: 100px;
+		width: 100px;
+		border-radius: 50%;
+	}
+
+	&__item--close {
+		position: relative;
+		background: #f55;
+		width: 250px;
+		bottom: -4px;
+		height: 40px;
+		border: none;
+		border-radius: 5px;
+		padding-bottom: 0;
+		cursor: pointer;
+	}
+
+	&__item--close:hover {
+		transition: 0.3s ease-in-out;
+  		background: #4F95DA;
+	}
+}
+
+.notfound {
+	&--hidden {
+		display: none;
+	}
+	
+	&__title {
+		color: white;
+		background: #f55;
+		height: 42px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 20px;
+		border: 1px solid white;
+		border-radius: 5px;
+		box-shadow: 0 0 19px 0 #fff;
+		transition: 0.3s;
+	}
+}
