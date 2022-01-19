@@ -1,226 +1,115 @@
 const input = document.querySelector('.search__input');
-const searchResultItems = document.querySelectorAll('.autocomplete__item');
-const bookmarks = document.querySelector('.bookmarks');
+const searchLi = document.querySelectorAll('.search__item');
+const bookmarks = document.querySelector('.bookmarks__result');
+let result;
 
 const sendRequest = (value) => {
-    if (typeof value !== 'string') return;
-
-    const BASE_URL = `https://api.github.com/search/repositories?q=${value}&sort=stars&per_page=5`;
-    
-    return fetch(BASE_URL).then(res => res.json()).then(res => res.items);
+    return fetch(`https://api.github.com/search/repositories?q=${value}&sort=stars&per_page=5`)
+        .then(res => res.json())
+        .then(res => res.items);
 };
 
-const debounce = (fn, delay) => {
-    let inDebounce;
-    return async function () {
-        clearTimeout(inDebounce);
-        inDebounce = setTimeout(() => fn.apply(this, arguments), delay);
-    }
+const createSearchItems = (item, index) => { 
+    const searchTitle = document.createElement('h3');
+    searchTitle.textContent = item.name;
+    searchTitle.id = item.id;
+    searchTitle.classList.add('search__title');
+    searchLi[index].append(searchTitle);
+    searchLi[index].classList.remove('search__item--hidden');
 };
 
-const createAutocompleteList = (item, index) => {
-    const autocompleteTitle = document.createElement('h3');
-
-    autocompleteTitle.textContent = item.name;
-    console.log(autocompleteTitle)
-    autocompleteTitle.classList.add('autocomplete__title');
-
-    searchResultItems[index].append(autocompleteTitle);
-    searchResultItems[index].classList.remove('autocomplete__item--hidden');
+const notFound = () => {
+    const notFoundSpan = document.querySelector('.notfound');
+    notFoundSpan.classList.remove('notfound--hidden');
 };
 
-
-const clearAutocompleteList = () => {
-    const autocompleteContent = document.querySelectorAll('.autocomplete__title');
-
-    autocompleteContent.forEach((item) => item.delete());
-
-    searchResultItems.forEach((item) => {
-        item.classList.add('autocomplete__item--hidden');
-        // item.remove();
-    });
+const notFoundDelete = () => {
+    const notFoundSpan = document.querySelector('.notfound');
+    notFoundSpan.classList.add('notfound--hidden');
 };
 
 const clear = () => {
-    let searchOptions = document.querySelector('.autocomplete__title');
-    if (searchOptions.length !==0) searchOptions.forEach(e => e.remove());
-    searchResultItems.forEach((element) => element.classList.add('autocomplete__item--hidden'));
+    let searchResults = document.querySelectorAll('.search__title'); 
+    if (searchResults.length !== 0) searchResults.forEach((item) => item.remove());
+    searchLi.forEach(item => item.classList.add('search__item--hidden'));
 };
 
 const createBookmark = (obj) => {
-    const li = document.createElement('li');
     const cardDiv = document.createElement('div');
-    const avatar = document.createElement('img')
+    const li = document.createElement('li');
+    const avatar = document.createElement('img');
     const nameTitle = document.createElement('p');
     const nameRepo = document.createElement('p');
     const stars = document.createElement('p');
     const closeButton = document.createElement('button');
 
+    cardDiv.classList.add('bookmarks__content');
     li.classList.add('bookmarks__item');
-    cardDiv.classList.add('bookmarks__content')
+    avatar.classList.add('bookmarks__item--avatar');
+    nameTitle.classList.add('bookmarks__item--name');
+    nameRepo.classList.add('bookmarks__item--login');
+    stars.classList.add('bookmarks__item--stars');
     closeButton.classList.add('bookmarks__item--close');
-    
+
+    closeButton.textContent = 'Закрыть';
+    closeButton.style.fontSize = '16px';
+    closeButton.style.fontWeight = '700';
+
     avatar.src = obj.owner.avatar_url;
     nameTitle.textContent = `name: ${obj.name}`;
     nameRepo.textContent = `login: ${obj.owner.login}`;
     stars.textContent = `stars: ${obj.stargazers_count}`;
 
-    cardDiv.append(avatar, nameRepo, nameTitle, stars, closeButton);
+    cardDiv.append(avatar);
+    cardDiv.append(nameTitle);
+    cardDiv.append(nameRepo);
+    cardDiv.append(stars);
+    cardDiv.append(closeButton);
     li.append(cardDiv);
     bookmarks.append(li);
 };
 
-const deleteBookmark = (event) => {
-    if (!event.target.classList.contains('bookmarks__item--close')) return;
-    const bookmark = event.target.closest('.bookmarks__item');
-    bookmark.classList.add('bookmarks__item--hidden');
+const clearSearchList = () => {
+    searchLi.forEach(item => item.innerHTML = '');
+    searchLi.forEach(item => item.classList.add('search__item--hidden'));
+};
+
+const debounce = (fn, debounceTime) => {
+    let timer;
+
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            fn.apply(this, args)
+        }, debounceTime);
+    }
 };
 
 const inputHandler = async (event) => {
-    if (!searchResultItems[0].classList.contains('autocomplete__item--hidden')){
-         clear();
-    };
-    if (event.target.value.length < 3) return;
+    const value = event.target.value; 
+    result = await sendRequest(value);
 
-    const result = await sendRequest(event.target.value);
-    
-    if (Array.isArray(result) && result.length > 0) {
-        result.forEach((item, index) => {
-            createAutocompleteList(item, index);
-        });
-    };
+    notFoundDelete();
 
-    searchResultItems.forEach(item => item.addEventListener('click', () => {
-         
-        
-        const target = item.firstElementChild.textContent;
-        const targetObj = result.find((item) => item.name === target);
-        createBookmark(targetObj); 
-        input.value = '';
-        clearAutocompleteList();
-    }));
+    if (!searchLi[0].classList.contains('search__item--hidden')) clear();
+    if (value.length > 0 && result.length > 0) result.forEach((item, index) => createSearchItems(item, index));
+    if (result?.length === 0) notFound();
 };
 
-bookmarks.addEventListener('click', deleteBookmark);
+searchLi.forEach(item => item.addEventListener('click', () => {
+    let target = item.firstElementChild.textContent;
+    let targetObj = result.find(item => item.name === target);
+    createBookmark(targetObj);
+    input.value ='';
+    clearSearchList();
+}));
+
+
+const deleteBookmark = (event) => {
+    if (!event.target.classList.contains('bookmarks__item--close')) return;
+    const bookmark = event.target.closest('.bookmarks__item');
+    bookmark.remove();
+};
+
 input.addEventListener('input', debounce(inputHandler, 500));
-
-
-// const input = document.querySelector('.search__input');
-// const result = document.querySelectorAll('.result__item');
-// const note = document.querySelector('.note');
-
-// // cleaning the search results field
-// const clear = () => {
-//     let searchOptions = document.querySelectorAll('.result__header');
-//     if (searchOptions.length !== 0) searchOptions.forEach(e => e.remove());
-//     if (result[0].classList.contains('result__item_empty')) result[0].classList.remove('result__item_empty');
-//     result.forEach(e => e.classList.add('result__item_hidden'));
-// };
-// const debounce = (fn, delay) => {
-//     let inDebounce;
-//     return async function () {
-//         clearTimeout(inDebounce);
-//         inDebounce = setTimeout(() => fn.apply(this, arguments), delay);
-//     }
-// };
-// const sendRequest = url =>
-//     fetch(url)
-//         .then(response => response.json())
-//         .then(response => response.items);
-
-// const autocomplete = (element, counter, arr) => {
-//     const headerName = document.createElement('h3');
-//     headerName.textContent = element.name.slice(0, 30);
-//     headerName.classList.add('result__header');
-//     arr[counter].append(headerName);
-//     arr[counter].classList.remove('result__item_hidden');
-// };
-// const search = e => {
-//     const requestURL = 'https://api.github.com/search/repositories?q=';
-//     if (e.target.value === '') return;
-//     return sendRequest(`${requestURL}${e.target.value}&sort=stars`);
-// };
-
-// // if we didn't find anything - then:
-// const notice = el => {
-//     const headerName = document.createElement('h3');
-//     headerName.textContent = 'Nothing found :(';
-//     headerName.classList.add('result__header');
-//     el.append(headerName);
-//     el.classList.remove('result__item_hidden');
-//     el.classList.add('result__item_empty');
-// };
-
-// // creating note elements, return li with '.note__item_hidden' to be processed later.
-// const createNote = ({ name, owner: { login, avatar_url }, stargazers_count }) => {
-//     const li = document.createElement('li');
-//     const noteContainer = document.createElement('div');
-//     const imgContainer = document.createElement('div');
-//     const contentContainer = document.createElement('div');
-//     const headerRepo = document.createElement('h3');
-//     const ownerRepo = document.createElement('p');
-//     const ownerAvatar = document.createElement('img');
-//     const ratingRepo = document.createElement('p');
-//     const close = document.createElement('button');
-
-//     headerRepo.textContent = `name: ${name}`;
-//     ownerRepo.textContent = `Owner repo: ${login}`;
-//     ownerAvatar.src = avatar_url;
-//     ratingRepo.textContent = `stars: ${stargazers_count}`;
-
-//     headerRepo.classList.add('note__header');
-//     ownerRepo.classList.add('note__login');
-//     ratingRepo.classList.add('note__rating');
-//     contentContainer.classList.add('note__content');
-//     imgContainer.classList.add('note__img');
-//     close.classList.add('note__close');
-//     noteContainer.classList.add('note__container');
-//     li.classList.add('note__item_hidden');
-//     li.classList.add('note__item');
-
-//     contentContainer.append(headerRepo, ownerRepo, ratingRepo);
-//     imgContainer.append(ownerAvatar);
-//     noteContainer.append(imgContainer, contentContainer, close);
-//     li.append(noteContainer);
-//     note.append(li);
-//     return li;
-// };
-
-// // remove the note.
-// const deleteNote = e => {
-//     if (!e.target.classList.contains('note__close')) return;
-//     const element = e.target.closest('.note__item');
-//     element.classList.add('note__item_hidden');
-//     setTimeout(() => element.remove(), 500)
-// };
-// note.addEventListener('click', deleteNote);
-
-// // anonymous self-invoking function to encapsulate the 'response' variable.
-// (() => {
-//     let response;
-
-//     input.addEventListener('input', debounce(async function (e) {
-//         if (!result[0].classList.contains('result__item_hidden')) clear();
-//         if (this.value.length < 3) return;
-
-//         try { response = await search(e) }
-//         catch(e) { throw e } // we can handle 404 here
-
-
-// //if (typeof response === 'undefined')// or we can handle undefined here
-//         if (response.length > result.length) response.length = result.length;
-//         if (response.length === 0) notice(result[0]);
-//         else response.forEach((element, i) => autocomplete(element, i, result));
-//     }, 500));
-
-//     result.forEach(e => e.addEventListener('click', () => {
-//         // in setTimout removing class 'note__item_hidden' for appearance animation.
-//         const name = e.firstElementChild.innerHTML;
-//         const element = response.find(e => e.name === name);
-//         const li = createNote(element);
-//         setTimeout(() => li.classList.remove('note__item_hidden'), 100);
-//         clear();
-//         input.value = '';
-//     }));
-// })();
-
+bookmarks.addEventListener('click', deleteBookmark);
