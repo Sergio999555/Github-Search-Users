@@ -1,7 +1,6 @@
 const input = document.querySelector('.search__input');
 const searchLi = document.querySelectorAll('.search__item');
 const bookmarks = document.querySelector('.bookmarks__result');
-let result;
 
 const sendRequest = (value) => {
     return fetch(`https://api.github.com/search/repositories?q=${value}&sort=stars&per_page=5`)
@@ -99,11 +98,27 @@ const inputHandler = async (event) => {
 searchLi.forEach(item => item.addEventListener('click', () => {
     let target = item.firstElementChild.textContent;
     let targetObj = result.find(item => item.name === target);
+
     createBookmark(targetObj);
-    input.value ='';
     clearSearchList();
+    
+    input.value ='';
 }));
 
+const saveBookmark = () => {
+    let bookmarkResult = document.querySelector('.bookmarks__result');
+    const addLocalStorage = document.querySelectorAll('.search__item');
+    
+    addLocalStorage.forEach(items => items.addEventListener('click', () => {
+        bookmarkResult = localStorage.setItem('bookmark', bookmarkResult.innerHTML);
+    }));
+
+    window.onload = () => {
+        bookmarkResult.innerHTML = localStorage.getItem('bookmark');
+    }
+};
+
+saveBookmark();
 
 const deleteBookmark = (event) => {
     if (!event.target.classList.contains('bookmarks__item--close')) return;
