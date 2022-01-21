@@ -44,22 +44,20 @@ const saveBookmarksToLocalStorage = (bookmarkData) => {
     localStorage.setItem('data', JSON.stringify(data))
 };
 
-const createBookmark = (obj) => {
-    const cardDiv = document.createElement('div');
-    const li = document.createElement('li');
-    const avatar = document.createElement('img');
-    const nameTitle = document.createElement('p');
-    const nameRepo = document.createElement('p');
-    const stars = document.createElement('p');
-    const closeButton = document.createElement('button');
+const createElements = (elementTag, elementClass) => {
+    const element = document.createElement(elementTag);
+    element.classList.add(elementClass);
+    return element;
+};
 
-    cardDiv.classList.add('bookmarks__content');
-    li.classList.add('bookmarks__item');
-    avatar.classList.add('bookmarks__item--avatar');
-    nameTitle.classList.add('bookmarks__item--name');
-    nameRepo.classList.add('bookmarks__item--login');
-    stars.classList.add('bookmarks__item--stars');
-    closeButton.classList.add('bookmarks__item--close');
+const createBookmark = (obj) => {
+    const cardDiv = createElements('div', 'bookmarks__content');
+    const li = createElements('li', 'bookmarks__item');
+    const avatar = createElements('img', 'bookmarks__item--avatar');
+    const nameTitle = createElements('p', 'bookmarks__item--name');
+    const nameRepo = createElements('p', 'bookmarks__item--login');
+    const stars = createElements('p', 'bookmarks__item--stars');
+    const closeButton = createElements('button', 'bookmarks__item--close');
 
     closeButton.textContent = 'Закрыть';
     closeButton.style.fontSize = '16px';
@@ -69,20 +67,11 @@ const createBookmark = (obj) => {
     nameTitle.textContent = `name: ${obj.name}`;
     nameRepo.textContent = `login: ${obj.owner.login}`;
     stars.textContent = `stars: ${obj.stargazers_count}`;
+    li.id = obj.id;
 
-    cardDiv.append(avatar);
-    cardDiv.append(nameTitle);
-    cardDiv.append(nameRepo);
-    cardDiv.append(stars);
-    cardDiv.append(closeButton);
+    cardDiv.append(avatar, nameTitle, nameRepo, stars, closeButton);
     li.append(cardDiv);
     bookmarks.append(li);
-
-    
-    // let localStorageArr = [];
-    // localStorageArr.push(bookmarks.innerHTML);
-    // console.log(localStorageArr);
-    // localStorage.setItem('bookmark', JSON.stringify([bookmarks.innerHTML])); 
 };
 
 const clearSearchList = () => {
@@ -118,7 +107,6 @@ searchLi.forEach(item => item.addEventListener('click', () => {
 
     createBookmark(targetObj);
     clearSearchList();
-
     saveBookmarksToLocalStorage(targetObj);
     
     input.value ='';
@@ -126,7 +114,6 @@ searchLi.forEach(item => item.addEventListener('click', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     const bookmarkData = JSON.parse(localStorage.getItem('data'));
-    // console.log(bookmarkData)
     bookmarkData.forEach((item) => {
         createBookmark(item);
     });
@@ -136,6 +123,10 @@ const deleteBookmark = (event) => {
     if (!event.target.classList.contains('bookmarks__item--close')) return;
     const bookmark = event.target.closest('.bookmarks__item');
     bookmark.remove();
+
+    let localStorageArray = [];
+    localStorageArray = JSON.parse(localStorage.getItem('data')).filter(item => (item.id != bookmark.id));
+    localStorage.setItem('data', JSON.stringify(localStorageArray));
 };
 
 input.addEventListener('input', debounce(inputHandler, 500));
