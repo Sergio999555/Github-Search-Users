@@ -28,9 +28,20 @@ const notFoundDelete = () => {
 };
 
 const clear = () => {
-    let searchResults = document.querySelectorAll('.search__title'); 
+    const searchResults = document.querySelectorAll('.search__title'); 
     if (searchResults.length !== 0) searchResults.forEach((item) => item.remove());
     searchLi.forEach(item => item.classList.add('search__item--hidden'));
+};
+
+const saveBookmarksToLocalStorage = (bookmarkData) => {
+    let data = [bookmarkData];
+    const savedData = JSON.parse(localStorage.getItem('data'));
+
+    if (savedData) {
+        data = [...savedData, ...data];
+    };
+    
+    localStorage.setItem('data', JSON.stringify(data))
 };
 
 const createBookmark = (obj) => {
@@ -66,6 +77,12 @@ const createBookmark = (obj) => {
     cardDiv.append(closeButton);
     li.append(cardDiv);
     bookmarks.append(li);
+
+    
+    // let localStorageArr = [];
+    // localStorageArr.push(bookmarks.innerHTML);
+    // console.log(localStorageArr);
+    // localStorage.setItem('bookmark', JSON.stringify([bookmarks.innerHTML])); 
 };
 
 const clearSearchList = () => {
@@ -101,24 +118,19 @@ searchLi.forEach(item => item.addEventListener('click', () => {
 
     createBookmark(targetObj);
     clearSearchList();
+
+    saveBookmarksToLocalStorage(targetObj);
     
     input.value ='';
 }));
 
-const saveBookmark = () => {
-    let bookmarkResult = document.querySelector('.bookmarks__result');
-    const addLocalStorage = document.querySelectorAll('.search__item');
-    
-    addLocalStorage.forEach(items => items.addEventListener('click', () => {
-        bookmarkResult = localStorage.setItem('bookmark', bookmarkResult.innerHTML);
-    }));
-
-    window.onload = () => {
-        bookmarkResult.innerHTML = localStorage.getItem('bookmark');
-    }
-};
-
-saveBookmark();
+document.addEventListener('DOMContentLoaded', () => {
+    const bookmarkData = JSON.parse(localStorage.getItem('data'));
+    // console.log(bookmarkData)
+    bookmarkData.forEach((item) => {
+        createBookmark(item);
+    });
+});
 
 const deleteBookmark = (event) => {
     if (!event.target.classList.contains('bookmarks__item--close')) return;
